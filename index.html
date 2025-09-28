@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>石头剪刀布游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .audio-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .audio-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .audio-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .audio-btn.music-on {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .audio-btn.music-off {
+            background: #dc3545;
+            opacity: 0.7;
+        }
+
+        .audio-btn.sound-on {
+            background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+        }
+
+        .audio-btn.sound-off {
+            background: #dc3545;
+            opacity: 0.7;
+        }
+
+        .score-board {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .score {
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .game-area {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 40px;
+            gap: 20px;
+        }
+
+        .player-area, .computer-area {
+            flex: 1;
+        }
+
+        .choice-display {
+            font-size: 4rem;
+            margin: 10px 0;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border: 3px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .choice-display.winner {
+            border-color: #28a745;
+            background: #d4edda;
+            transform: scale(1.1);
+        }
+
+        .choice-display.loser {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .vs {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #666;
+            flex: 0 0 auto;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .choice-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .choice-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .choice-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .choice-btn .emoji {
+            font-size: 2rem;
+        }
+
+        .result-area {
+            margin-top: 20px;
+        }
+
+        .result-message {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .result-message.win {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+
+        .result-message.lose {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+
+        .result-message.tie {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffc107;
+        }
+
+        .reset-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .reset-btn:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                margin: 10px;
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .audio-controls {
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+
+            .audio-btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+
+            .game-area {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .vs {
+                order: 2;
+                font-size: 1.5rem;
+            }
+
+            .choice-display {
+                font-size: 3rem;
+                min-height: 80px;
+            }
+
+            .controls {
+                gap: 10px;
+            }
+
+            .choice-btn {
+                min-width: 100px;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>石头剪刀布游戏</h1>
+
+        <div class="audio-controls">
+            <button id="music-toggle" class="audio-btn music-on" title="切换背景音乐">
+                🎵 音乐
+            </button>
+            <button id="sound-toggle" class="audio-btn sound-on" title="切换音效">
+                🔊 音效
+            </button>
+        </div>
+
+        <div class="score-board">
+            <div class="score">
+                <span>您的得分: <span id="player-score">0</span></span>
+                <span>电脑得分: <span id="computer-score">0</span></span>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div class="player-area">
+                <h3>您的选择</h3>
+                <div id="player-choice" class="choice-display">❓</div>
+            </div>
+
+            <div class="vs">VS</div>
+
+            <div class="computer-area">
+                <h3>电脑选择</h3>
+                <div id="computer-choice" class="choice-display">❓</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="choice-btn" data-choice="rock">
+                <span class="emoji">🪨</span>
+                <span>石头</span>
+            </button>
+            <button class="choice-btn" data-choice="paper">
+                <span class="emoji">📄</span>
+                <span>布</span>
+            </button>
+            <button class="choice-btn" data-choice="scissors">
+                <span class="emoji">✂️</span>
+                <span>剪刀</span>
+            </button>
+        </div>
+
+        <div class="result-area">
+            <div id="result-message" class="result-message"></div>
+            <button id="reset-btn" class="reset-btn">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        // 音频管理类
+        class AudioManager {
+            constructor() {
+                this.audioContext = null;
+                this.backgroundMusic = null;
+                this.isMusicPlaying = false;
+                this.soundEnabled = true;
+                this.musicEnabled = true;
+                this.initAudioContext();
+            }
+
+            // 初始化音频上下文
+            initAudioContext() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (error) {
+                    console.warn('Web Audio API not supported:', error);
+                }
+            }
+
+            // 创建简单的音调
+            createTone(frequency, duration, type = 'sine', volume = 0.3) {
+                if (!this.audioContext || !this.soundEnabled) return;
+
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+
+                oscillator.type = type;
+                oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+
+                gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(volume, this.audioContext.currentTime + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + duration);
+            }
+
+            // 播放点击音效
+            playClickSound() {
+                this.createTone(800, 0.1, 'square', 0.2);
+            }
+
+            // 播放胜利音效
+            playWinSound() {
+                // 胜利音效 - 上升的音调
+                setTimeout(() => this.createTone(523, 0.2, 'sine', 0.3), 0);    // C
+                setTimeout(() => this.createTone(659, 0.2, 'sine', 0.3), 200);  // E
+                setTimeout(() => this.createTone(784, 0.3, 'sine', 0.3), 400);  // G
+            }
+
+            // 播放失败音效
+            playLoseSound() {
+                // 失败音效 - 下降的音调
+                this.createTone(400, 0.5, 'sawtooth', 0.3);
+            }
+
+            // 播放平局音效
+            playTieSound() {
+                this.createTone(600, 0.3, 'triangle', 0.2);
+            }
+
+            // 播放游戏结束音效
+            playGameOverSound(isWin) {
+                if (isWin) {
+                    // 胜利庆祝音效
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(() => {
+                            this.createTone(523 + i * 100, 0.2, 'sine', 0.3);
+                        }, i * 150);
+                    }
+                } else {
+                    // 失败音效
+                    this.createTone(200, 1, 'sawtooth', 0.3);
+                }
+            }
+
+            // 简单的背景音乐（循环音调）
+            startBackgroundMusic() {
+                if (!this.audioContext || !this.musicEnabled || this.isMusicPlaying) return;
+
+                this.isMusicPlaying = true;
+                this.playBackgroundLoop();
+            }
+
+            playBackgroundLoop() {
+                if (!this.isMusicPlaying || !this.musicEnabled) return;
+
+                // 简单的旋律循环
+                const melody = [523, 587, 659, 698, 784, 698, 659, 587]; // C大调音阶
+
+                melody.forEach((frequency, index) => {
+                    setTimeout(() => {
+                        if (this.isMusicPlaying && this.musicEnabled) {
+                            this.createTone(frequency, 0.5, 'sine', 0.1);
+                        }
+                    }, index * 600);
+                });
+
+                // 循环播放
+                if (this.isMusicPlaying && this.musicEnabled) {
+                    setTimeout(() => {
+                        this.playBackgroundLoop();
+                    }, melody.length * 600);
+                }
+            }
+
+            // 停止背景音乐
+            stopBackgroundMusic() {
+                this.isMusicPlaying = false;
+            }
+
+            // 切换音效
+            toggleSounds() {
+                this.soundEnabled = !this.soundEnabled;
+                return this.soundEnabled;
+            }
+
+            // 切换背景音乐
+            toggleMusic() {
+                this.musicEnabled = !this.musicEnabled;
+                if (this.musicEnabled && !this.isMusicPlaying) {
+                    this.startBackgroundMusic();
+                } else if (!this.musicEnabled) {
+                    this.stopBackgroundMusic();
+                }
+                return this.musicEnabled;
+            }
+        }
+
+        // 创建全局音频管理器实例
+        const audioManager = new AudioManager();
+
+        // 游戏状态
+        let playerScore = 0;
+        let computerScore = 0;
+
+        // 游戏选项
+        const choices = {
+            rock: { emoji: '🪨', name: '石头' },
+            paper: { emoji: '📄', name: '布' },
+            scissors: { emoji: '✂️', name: '剪刀' }
+        };
+
+        // DOM 元素
+        const playerScoreElement = document.getElementById('player-score');
+        const computerScoreElement = document.getElementById('computer-score');
+        const playerChoiceElement = document.getElementById('player-choice');
+        const computerChoiceElement = document.getElementById('computer-choice');
+        const resultMessageElement = document.getElementById('result-message');
+        const choiceButtons = document.querySelectorAll('.choice-btn');
+        const resetButton = document.getElementById('reset-btn');
+        const musicToggle = document.getElementById('music-toggle');
+        const soundToggle = document.getElementById('sound-toggle');
+
+        // 初始化游戏
+        function initGame() {
+            // 为每个选择按钮添加点击事件
+            choiceButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const playerChoice = button.dataset.choice;
+                    audioManager.playClickSound(); // 播放点击音效
+                    playRound(playerChoice);
+                });
+            });
+
+            // 重置按钮事件
+            resetButton.addEventListener('click', () => {
+                audioManager.playClickSound();
+                resetGame();
+            });
+
+            // 音频控制按钮事件
+            musicToggle.addEventListener('click', () => {
+                audioManager.playClickSound();
+                const isMusicOn = audioManager.toggleMusic();
+                updateMusicButton(isMusicOn);
+            });
+
+            soundToggle.addEventListener('click', () => {
+                // 先播放音效再切换状态，这样用户能听到这个点击
+                audioManager.playClickSound();
+                setTimeout(() => {
+                    const isSoundOn = audioManager.toggleSounds();
+                    updateSoundButton(isSoundOn);
+                }, 100);
+            });
+
+            // 初始化音频控制按钮状态
+            updateMusicButton(audioManager.musicEnabled);
+            updateSoundButton(audioManager.soundEnabled);
+
+            // 初始化显示
+            updateScore();
+            showMessage('选择您的出招！', '');
+
+            // 启动背景音乐
+            setTimeout(() => {
+                audioManager.startBackgroundMusic();
+            }, 1000);
+        }
+
+        // 更新音乐按钮状态
+        function updateMusicButton(isOn) {
+            if (isOn) {
+                musicToggle.className = 'audio-btn music-on';
+                musicToggle.innerHTML = '🎵 音乐';
+            } else {
+                musicToggle.className = 'audio-btn music-off';
+                musicToggle.innerHTML = '🔇 音乐';
+            }
+        }
+
+        // 更新音效按钮状态
+        function updateSoundButton(isOn) {
+            if (isOn) {
+                soundToggle.className = 'audio-btn sound-on';
+                soundToggle.innerHTML = '🔊 音效';
+            } else {
+                soundToggle.className = 'audio-btn sound-off';
+                soundToggle.innerHTML = '🔇 音效';
+            }
+        }
+
+        // 玩一轮游戏
+        function playRound(playerChoice) {
+            // 禁用按钮防止重复点击
+            disableButtons();
+
+            // 生成电脑选择
+            const computerChoice = getComputerChoice();
+
+            // 显示选择
+            showChoices(playerChoice, computerChoice);
+
+            // 添加一个短暂的延迟以增加悬念
+            setTimeout(() => {
+                // 判断胜负
+                const result = determineWinner(playerChoice, computerChoice);
+
+                // 播放结果音效
+                playResultSound(result);
+
+                // 更新分数
+                updateScoreBasedOnResult(result);
+
+                // 显示结果
+                showResult(result, playerChoice, computerChoice);
+
+                // 重新启用按钮
+                enableButtons();
+            }, 1000);
+        }
+
+        // 播放结果音效
+        function playResultSound(result) {
+            switch (result) {
+                case 'win':
+                    audioManager.playWinSound();
+                    break;
+                case 'lose':
+                    audioManager.playLoseSound();
+                    break;
+                case 'tie':
+                    audioManager.playTieSound();
+                    break;
+            }
+        }
+
+        // 获取电脑选择
+        function getComputerChoice() {
+            const choiceArray = Object.keys(choices);
+            const randomIndex = Math.floor(Math.random() * choiceArray.length);
+            return choiceArray[randomIndex];
+        }
+
+        // 显示选择
+        function showChoices(playerChoice, computerChoice) {
+            playerChoiceElement.textContent = choices[playerChoice].emoji;
+
+            // 电脑选择添加动画效果
+            let counter = 0;
+            const animationInterval = setInterval(() => {
+                const randomChoice = getComputerChoice();
+                computerChoiceElement.textContent = choices[randomChoice].emoji;
+                counter++;
+
+                if (counter >= 10) {
+                    clearInterval(animationInterval);
+                    computerChoiceElement.textContent = choices[computerChoice].emoji;
+                }
+            }, 100);
+        }
+
+        // 判断胜负
+        function determineWinner(playerChoice, computerChoice) {
+            if (playerChoice === computerChoice) {
+                return 'tie';
+            }
+
+            const winConditions = {
+                rock: 'scissors',
+                paper: 'rock',
+                scissors: 'paper'
+            };
+
+            if (winConditions[playerChoice] === computerChoice) {
+                return 'win';
+            } else {
+                return 'lose';
+            }
+        }
+
+        // 根据结果更新分数
+        function updateScoreBasedOnResult(result) {
+            if (result === 'win') {
+                playerScore++;
+            } else if (result === 'lose') {
+                computerScore++;
+            }
+            updateScore();
+        }
+
+        // 更新分数显示
+        function updateScore() {
+            playerScoreElement.textContent = playerScore;
+            computerScoreElement.textContent = computerScore;
+        }
+
+        // 显示结果
+        function showResult(result, playerChoice, computerChoice) {
+            const playerName = choices[playerChoice].name;
+            const computerName = choices[computerChoice].name;
+
+            let message = '';
+            let className = '';
+
+            switch (result) {
+                case 'win':
+                    message = `🎉 您赢了！${playerName} 击败 ${computerName}`;
+                    className = 'win';
+                    // 添加胜利效果
+                    playerChoiceElement.classList.add('winner');
+                    computerChoiceElement.classList.add('loser');
+                    break;
+                case 'lose':
+                    message = `😔 您输了！${computerName} 击败 ${playerName}`;
+                    className = 'lose';
+                    // 添加失败效果
+                    playerChoiceElement.classList.add('loser');
+                    computerChoiceElement.classList.add('winner');
+                    break;
+                case 'tie':
+                    message = `🤝 平局！都选择了${playerName}`;
+                    className = 'tie';
+                    break;
+            }
+
+            showMessage(message, className);
+
+            // 检查是否有人率先达到5分
+            if (playerScore >= 5 || computerScore >= 5) {
+                setTimeout(() => {
+                    showGameOver();
+                }, 2000);
+            }
+        }
+
+        // 显示消息
+        function showMessage(message, className) {
+            resultMessageElement.textContent = message;
+            resultMessageElement.className = `result-message ${className}`;
+        }
+
+        // 游戏结束
+        function showGameOver() {
+            let finalMessage = '';
+            const isPlayerWin = playerScore >= 5;
+
+            if (isPlayerWin) {
+                finalMessage = '🏆 恭喜！您获得了最终胜利！';
+                showMessage(finalMessage, 'win');
+                audioManager.playGameOverSound(true);
+            } else {
+                finalMessage = '💻 电脑获得了最终胜利！再试一次吧！';
+                showMessage(finalMessage, 'lose');
+                audioManager.playGameOverSound(false);
+            }
+
+            disableButtons();
+        }
+
+        // 重置游戏
+        function resetGame() {
+            playerScore = 0;
+            computerScore = 0;
+
+            updateScore();
+
+            playerChoiceElement.textContent = '❓';
+            computerChoiceElement.textContent = '❓';
+
+            // 清除所有效果类
+            playerChoiceElement.className = 'choice-display';
+            computerChoiceElement.className = 'choice-display';
+
+            showMessage('选择您的出招！', '');
+
+            enableButtons();
+        }
+
+        // 禁用按钮
+        function disableButtons() {
+            choiceButtons.forEach(button => {
+                button.disabled = true;
+                button.style.opacity = '0.6';
+                button.style.cursor = 'not-allowed';
+            });
+        }
+
+        // 启用按钮
+        function enableButtons() {
+            choiceButtons.forEach(button => {
+                button.disabled = false;
+                button.style.opacity = '1';
+                button.style.cursor = 'pointer';
+            });
+        }
+
+        // 页面加载完成后初始化游戏
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
